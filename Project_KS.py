@@ -29,13 +29,16 @@
 
 import turtle
 import random
+import time
 
 score = 0
+gameTime = 30
 screen = turtle.Screen()
 screen.title("Aim Labs")
-screen.bgcolor()
+screen.bgcolor("white")
 
 isTargetHit = False
+
 
 target = turtle.Turtle()
 target.shape("circle")
@@ -48,47 +51,65 @@ target.shapesize(3)
 timerDisplay = turtle.Turtle()
 timerDisplay.hideturtle()
 timerDisplay.penup()
-timerDisplay.goto(0,200)
+timerDisplay.goto(0, 200)
 timerDisplay.write("Time: 0", align="center", font=("Arial", 24, "normal"))
 
 hitTimer = 0
 timeElapsed = 0
+storedTime = []
 
-print(isTargetHit)
-def targetHit(x,y):
-    global score
+
+def targetHit(x, y):
+    global score, isTargetHit
     score += 1
-    print(score)
-    isTargetHit = True
-    print(f"Turtle clicked at {x},{y}, {isTargetHit}")
-    screen.ontimer(target.color("gray"),msTime)
-    target.goto(random.randint(-200,200),random.randint(-200,200))
-    
-    isTargetHit = False
-    print(isTargetHit)
-    target.color("red")
+    isTargetHit = True  
+    print(f"Target clicked! Score: {score}, isTargetHit: {isTargetHit}")
 
+ 
+    target.color("gray")
+    screen.ontimer(lambda: target.color("red"), msTime)
+
+    
+    target.goto(random.randint(-200, 200), random.randint(-200, 200))
 
 def updateHitTimer():
     global timeElapsed, isTargetHit
 
     if isTargetHit:
-        timeElapsed = 0
+        storedTime.append(timeElapsed)
+        timeElapsed = 0  
         isTargetHit = False  
+
+        print(storedTime)
     else:
-        timeElapsed += 0.1
-
-
- 
+        timeElapsed += 0.1  
     timerDisplay.clear()
     timerDisplay.write(f"Time: {round(timeElapsed, 1)}", align="center", font=("Arial", 24, "normal"))
 
-    screen.ontimer(updateHitTimer, 10)
 
-  
-    
-    
-updateHitTimer()
-target.onclick(targetHit)
+    screen.ontimer(updateHitTimer, 100)
+
+
+
+def finalScore():
+    averageTime = sum(storedTimes)
+    print
+
+
+
+while gameTime > 0:
+    time.sleep(1)
+    gameTime -= 1
+
+    target.onclick(targetHit)
+
+
+    updateHitTimer()
+    screen.mainloop()
+    print(gameTime)
+
+
+
+
 
 
