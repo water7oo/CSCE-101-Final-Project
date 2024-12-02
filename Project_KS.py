@@ -29,84 +29,89 @@
 
 import turtle
 import random
-import time
 
-score = 0
-gameTime = 30
 screen = turtle.Screen()
 screen.title("Aim Labs")
 screen.bgcolor("white")
 
+score = 0
+gameTime = 30
 isTargetHit = False
-
+timeElapsed = 0
+storedTime = []
 
 target = turtle.Turtle()
-target.shape("circle")
+target.shape("turtle")
 target.color("red")
 target.penup()
 target.speed(0)
-msTime = 250
 target.shapesize(3)
 
 timerDisplay = turtle.Turtle()
 timerDisplay.hideturtle()
 timerDisplay.penup()
 timerDisplay.goto(0, 200)
-timerDisplay.write("Time: 0", align="center", font=("Arial", 24, "normal"))
 
-hitTimer = 0
-timeElapsed = 0
-storedTime = []
 
+countdownDisplay = turtle.Turtle()
+countdownDisplay.hideturtle()
+countdownDisplay.penup()
+countdownDisplay.goto(-200, 200)
+countdownDisplay.write("Time Left: 30", align="left", font=("Arial", 24, "normal"))
+
+scoreDisplay = turtle.Turtle()
+scoreDisplay.hideturtle()
+scoreDisplay.penup()
+scoreDisplay.goto(100, 200)
+scoreDisplay.write("Score: 0", align="left", font=("Arial", 24, "normal"))
 
 def targetHit(x, y):
     global score, isTargetHit
-    score += 1
-    isTargetHit = True  
-    print(f"Target clicked! Score: {score}, isTargetHit: {isTargetHit}")
-
- 
+    score += 100
+    isTargetHit = True
+    scoreDisplay.clear()
+    scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
     target.color("gray")
-    screen.ontimer(lambda: target.color("red"), msTime)
-
-    
+    screen.ontimer(lambda: target.color("red"), 250)
     target.goto(random.randint(-200, 200), random.randint(-200, 200))
+
+def targetMiss(x, y):
+    global score
+    score -= 10
+    score = max(score, 0)
+    scoreDisplay.clear()
+    scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
 
 def updateHitTimer():
     global timeElapsed, isTargetHit
-
     if isTargetHit:
         storedTime.append(timeElapsed)
-        timeElapsed = 0  
-        isTargetHit = False  
-
-        print(storedTime)
+        timeElapsed = 0
+        isTargetHit = False
     else:
-        timeElapsed += 0.1  
-    timerDisplay.clear()
-    timerDisplay.write(f"Time: {round(timeElapsed, 1)}", align="center", font=("Arial", 24, "normal"))
-
-
+        timeElapsed += 0.1
+   
     screen.ontimer(updateHitTimer, 100)
 
+def updateCountdown():
+    global gameTime
+    if gameTime > 0:
+        gameTime -= 1
+        countdownDisplay.clear()
+        countdownDisplay.write(f"Time: {gameTime}", align="left", font=("Arial", 24, "normal"))
+        screen.ontimer(updateCountdown, 1000)
+    else:
+        target.hideturtle()
+        countdownDisplay.clear()
+        countdownDisplay.write("Time Left: 0", align="left", font=("Arial", 24, "normal"))
+        print(f"Final Score: {score}")
+        print(f"Average Reaction Time: {sum(storedTime) / len(storedTime) if storedTime else 0:.2f}")
 
-
-def finalScore():
-    averageTime = sum(storedTimes)
-    print
-
-
-
-while gameTime > 0:
-    time.sleep(1)
-    gameTime -= 1
-
-    target.onclick(targetHit)
-
-
-    updateHitTimer()
-    screen.mainloop()
-    print(gameTime)
+target.onclick(targetHit)
+screen.onclick(targetMiss)
+updateHitTimer()
+updateCountdown()
+screen.mainloop()
 
 
 
