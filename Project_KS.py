@@ -27,6 +27,11 @@
 # give the player the option to play again, this resets the game timer to 60 or 30 and runs the while loop again
 
 
+## Might be outside the scope of the Game ##
+
+# Have it to where if the player gets 10 in a row, decrease the size of the target and award slightly more points
+# incorporate hit combos???
+
 
 # .clear() method is used to clear the written information on screen, which causing the blinking
 
@@ -48,6 +53,10 @@ gameTime = 30
 #boolean to determine if target is hit
 isTargetHit = False
 
+#issue arose whenever the player clicked, the hit was triggering both the miss and hit functions
+#having a boolean flag that fires when an actual hit was proccessed allows me to determine when a click HAS NOT clicked the turtle
+isClickProccessed = False
+
 #determine how much time has elapsed
 timeElapsed = 0
 #stores that elapsed time in a list
@@ -55,11 +64,24 @@ storedTime = []
 
 #turtle variables
 target = turtle.Turtle()
-target.shape("turtle")
+target.shape("circle")
 target.color("red")
 target.penup()
 target.speed(0)
 target.shapesize(3)
+
+
+#golden turtle
+golden = turtle.Turtle()
+golden.shape("square")
+golden.color("yellow")
+golden.penup()
+golden.speed(0)
+golden.shapesize(1)
+isGolden = False
+
+#initially hides it
+golden.hideturtle()
 
 #displays an invisible timer that tracks time taken between clicks
 timerDisplay = turtle.Turtle()
@@ -86,29 +108,52 @@ scoreDisplay.write("Score: 0", align="left", font=("Arial", 24, "normal"))
 
 #main target function that fires when target is clicked
 def targetHit(x, y):
-    global score, isTargetHit
+    global score, isTargetHit, isClickProccessed
 
+    isClickProccessed = True
     #increments 100 points every click
     score += 100
     isTargetHit = True
-    scoreDisplay.
+    scoreDisplay.clear()
     scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
-    target.color("gray")
+    target.color("#b5ff84")
 
-    #using the lambda function it can take in more than 1 arguement (target.color(),timer alotted) and 
+    #using the lambda function it can take in more than 1 arguement (target.color(),timer alotted) and changes the
+    #color to red
     screen.ontimer(lambda: target.color("red"), 250)
 
     #makes target go to random spot on the screen
     target.goto(random.randint(-200, 200), random.randint(-200, 200))
 
+    goldenTurtle()
+
+# determines what happens if the golden gets clicked
+def goldenHit(x,y):
+    global score, isGoldenHit, isClickProccessed
+
+    isClickProccessed = True
+    print("YOU HIT THE GOLDEN")
+    golden.hideturtle()
+    score += 300
+    isGoldenHit = True
+    scoreDisplay.clear()
+    scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
+    golden.goto(random.randint(-200, 200), random.randint(-200, 200))
+    
+
 
 #Main target function that fires when target is missed
 def targetMiss(x, y):
-    global score
-    score -= 10
-    score = max(score, 0)
-    scoreDisplay.clear()
-    scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
+    global score, isTargetHit, isClickProccessed
+
+    isTargetHit = False
+
+    if not isClickProccessed:
+        score -= 10
+        score = max(score, 0)
+        scoreDisplay.clear()
+        scoreDisplay.write(f"Score: {score}", align="left", font=("Arial", 24, "normal"))
+    isClickProccessed = False
 
 
 #updates the hit timer, every time the player clicks the target, the current
@@ -124,6 +169,31 @@ def updateHitTimer():
    
     screen.ontimer(updateHitTimer, 100)
 
+
+#hides golden turtle if player takes too long
+def hideturtle():
+    global isGolden
+    golden.hideturtle()
+    golden.goto(random.randint(-200, 200), random.randint(-200, 200))
+    isGolden = False
+
+#deals with how the golden functions, if golden number hits a value 90 or greater a golden will spawn
+def goldenTurtle():
+    global isGolden
+    goldenNum = random.randint(1,100)
+    print(goldenNum)
+
+    if goldenNum >= 90:
+        isGolden = True
+        golden.showturtle()
+        screen.ontimer(hideturtle,6000)
+        
+
+    if isGolden == True:
+        golden.onclick(goldenHit)
+
+        
+        
 
 #updates the game countdown
 def updateCountdown():
@@ -148,9 +218,12 @@ def updateCountdown():
 #methods below to fire when clicks occur, timer methods are also below
 target.onclick(targetHit)
 screen.onclick(targetMiss)
+golden.onclick(goldenHit)
+
 updateHitTimer()
 updateCountdown()
 screen.mainloop()
+
 
 
 
